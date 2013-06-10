@@ -19,7 +19,6 @@ component.directive('map', function () {
             $scope.type = 'roadmap';
             $scope.markerContent = 'Google HQ';
             
-            
         },
         replace: false,
         templateUrl: 'mapTemplate.html',
@@ -31,7 +30,7 @@ component.directive('map', function () {
                     mapTypeId: attrs.type !== undefined ? attrs.type.toLowerCase() : 'roadmap',
                     streetViewControl: false
                 };
-                scope.map = new google.maps.Map(document.getElementById('theMap'), mapOptions); // todo: use angular-element :)      
+                map = new google.maps.Map(document.getElementById('theMap'), mapOptions); // todo: use angular-element :)      
                 scope.endPoint = attrs.destination !== undefined ? attrs.destination : '1600 Amphitheatre Parkway, Santa Clara County, CA';
 
                 geocoder.geocode({
@@ -39,9 +38,9 @@ component.directive('map', function () {
                 }, function (results, status) {
                     var location = results[0].geometry.location;
                     if (status === google.maps.GeocoderStatus.OK) {
-                        scope.map.setCenter(location);
+                        map.setCenter(location);
                         marker = new google.maps.Marker({
-                            map: scope.map,
+                            map: map,
                             position: location,
                             animation: google.maps.Animation.DROP
                         });
@@ -49,7 +48,7 @@ component.directive('map', function () {
                             content: attrs.markerContent !== undefined ? attrs.markerContent : 'Google HQ'
                         });
                         google.maps.event.addListener(marker, 'click', function () {
-                            return infowindow.open(scope.map, marker);
+                            return infowindow.open(map, marker);
                         });
 
                     } else {
@@ -92,7 +91,7 @@ component.directive('directions', function ($window) {
                     return status === google.maps.DirectionsStatus.OK ? directionsDisplay.setDirections(response) : console.warn(status);
                 });
                 
-                directionsDisplay.setMap(scope.map);
+                directionsDisplay.setMap(map);
                 directionsDisplay.setPanel(directionsList);
                 return scope.isPanelSet = true;
                
