@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html ng-app="mapComponent">
+
+  <head>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script data-require="angular.js@1.1.5" data-semver="1.1.5" src="http://code.angularjs.org/1.1.5/angular.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/css/foundation.min.css"  />
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js"></script>
+  </head>
+
+  <body>
+      <div class="row">
+        <map destination="Philadelphia PA" type="roadmap" zoom="17" marker-content="Philly"></map>
+        </div>
+        <div class="row">
+        <div class="small-12 columns">
+          <h2>Content and other stuff</h2>
+          <directions></directions>
+          <p>
+            Etiam aliquam sem ac velit feugiat elementum. 
+            Nunc eu elit velit, nec vestibulum nibh. Curabitur ultrices,
+            diam non ullamcorper blandit, nunc lacus ornare nisi, 
+            egestas rutrum magna est id nunc.
+            </p>
+            <p>
+            Pellentesque imperdiet malesuada quam, et rhoncus eros auctor eu. 
+            Nullam vehicula metus ac lacus rutrum nec fermentum urna congue.
+            Vestibulum et risus at mi ultricies sagittis quis nec ligula. 
+            Suspendisse dignissim dignissim luctus. Duis ac dictum nibh.
+            Etiam id massa magna. Morbi molestie posuere posuere.    
+          </p>
+          
+        </div>
+      </div>
+  </body>
+
+</html>
