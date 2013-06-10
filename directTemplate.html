@@ -1,0 +1,12 @@
+<form novalidate name="mapContainer" class="mapContainer">
+  <div class="directionsWrap">
+    <label>Origin:</label>
+    <input type="text" ng-model="origin" required>
+    <label>Destination:</label>
+    <input ng-model="endPoint" type="text" disabled>
+    <button class="getDirections success" ng-click="getDirections()" ng-disabled="mapContainer.$invalid">Get Directions</button>
+    <button class="clearDirections alert" ng-click="clearDirections()" ng-disabled="mapContainer.$invalid" ng-show="isPanelSet">Clear</button>
+    <button class="printDirections" ng-click="printDirections()" ng-disabled="mapContainer.$invalid" ng-show="isPanelSet">Print Directions</button>
+    <div id="directionsList"></div>
+  </div>
+</form>
