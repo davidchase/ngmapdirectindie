@@ -1,113 +1,121 @@
 /*global google:false */
 var component = angular.module('mapComponent', []);
 
-component.directive('map', function () {
-    'use strict';
-    var geocoder = new google.maps.Geocoder(),
-        map,
-        marker,
-        mapObj,
-        zoom,
-        infowindow;
+component.directive('gmap', function($q) {
+  'use strict';
+  var geocoder = new google.maps.Geocoder();
+  var map;
+  var marker;
+  var mapObj;
+  var zoom;
+  var infowindow;
+  mapObj = {
+    restrict: 'EA',
+    scope: false,
+    controller: function($scope, $element) {
+      $scope.destination = '1600 Amphitheatre Parkway, Santa Clara County, CA';
+      $scope.zoom = 10;
+      $scope.type = 'roadmap';
+      $scope.markerContent = 'Google HQ';
+    },
+    replace: false,
+    templateUrl: 'mapTemplate.html',
+    link: function(scope, element, attrs) {
+      var zoom = parseInt(attrs.zoom, 10);
+      var displayResults = function(results, status) {
+        var location = results[0].geometry.location;
 
-    mapObj = {
-        restrict: 'EAC',
-        scope: false,
-        controller: function ($scope, $element) {
-            $scope.destination = '1600 Amphitheatre Parkway, Santa Clara County, CA';
-            $scope.zoom = 15;
-            $scope.type = 'roadmap';
-            $scope.markerContent = 'Google HQ';
-            
-        },
-        replace: false,
-        templateUrl: 'mapTemplate.html',
-        link: function (scope, element, attrs) {
-            zoom = parseInt(attrs.zoom, 10);
-            scope.init = function () {
-                var mapOptions = {
-                    zoom: attrs.zoom !== undefined ? zoom : scope.zoom,
-                    mapTypeId: attrs.type !== undefined ? attrs.type.toLowerCase() : 'roadmap',
-                    streetViewControl: false
-                };
-                map = new google.maps.Map(document.getElementById('theMap'), mapOptions); // todo: use angular-element :)      
-                scope.endPoint = attrs.destination !== undefined ? attrs.destination : '1600 Amphitheatre Parkway, Santa Clara County, CA';
-
-                geocoder.geocode({
-                    address: scope.endPoint
-                }, function (results, status) {
-                    var location = results[0].geometry.location;
-                    if (status === google.maps.GeocoderStatus.OK) {
-                        map.setCenter(location);
-                        marker = new google.maps.Marker({
-                            map: map,
-                            position: location,
-                            animation: google.maps.Animation.DROP
-                        });
-                        infowindow = new google.maps.InfoWindow({
-                            content: attrs.markerContent !== undefined ? attrs.markerContent : 'Google HQ'
-                        });
-                        google.maps.event.addListener(marker, 'click', function () {
-                            return infowindow.open(map, marker);
-                        });
-
-                    } else {
-                        alert('Cannot Geocode');
-                    }
-
-                });
-
-            };
-
-            scope.init();
+        if (status  === google.maps.GeocoderStatus.OK) {
+          scope.map.setCenter(location);
+          marker = new google.maps.Marker({
+            map: scope.map,
+            position: location,
+            animation: google.maps.Animation.DROP
+          });
+          infowindow = new google.maps.InfoWindow({
+            content: attrs.markerContent || scope.markerContent
+          });
+          google.maps.event.addListener(marker, 'click', function() {
+            return infowindow.open(scope.map, marker);
+          }, false);
+        } else {
+          console.error('Cannot Geocode ' + status);
         }
-    };
 
-    return mapObj;
+
+      };
+      scope.renderMap = function() {
+        var mapOptions = {
+          zoom: zoom || scope.zoom,
+          mapTypeId: attrs.type && attrs.type.toLowerCase() || scope.type,
+          streetViewControl: false
+        };
+        scope.map = new google.maps.Map(document.getElementById('theMap'), mapOptions); // todo: use angular-element :)      
+        scope.endPoint = attrs.destination || scope.destination;
+
+        geocoder.geocode({
+          address: scope.endPoint
+        }, displayResults);
+
+
+
+      };
+
+      scope.renderMap();
+
+    }
+  };
+
+  return mapObj;
 });
 
-component.directive('directions', function ($window) {
+component.directive('directions', ['$window', '$q',
+  function($window, $q) {
     'use strict';
-    var directionsDisplay = new google.maps.DirectionsRenderer(),
-        directionsService = new google.maps.DirectionsService(),
-        directionsObj,
-        isPanelSet,
-        directionsList;
+    var directionsDisplay = new google.maps.DirectionsRenderer();
+    var directionsService = new google.maps.DirectionsService();
+    var directionsObj;
+    var isPanelSet;
+    var directionsList;
 
     directionsObj = {
-        restrict: 'EAC',
-        replace: true,
-        templateUrl: 'directTemplate.html',
-        link: function (scope, element) {
-          directionsList = document.getElementById('directionsList');
-          
-            scope.getDirections = function () {
-                var request = {
-                    origin: scope.origin,
-                    destination: scope.endPoint,
-                    travelMode: google.maps.DirectionsTravelMode.DRIVING
-                };
-                directionsService.route(request, function (response, status) {
-                    return status === google.maps.DirectionsStatus.OK ? directionsDisplay.setDirections(response) : console.warn(status);
-                });
-                
-                directionsDisplay.setMap(map);
-                directionsDisplay.setPanel(directionsList);
-                return scope.isPanelSet = true;
-               
-            };
-            
-            scope.clearDirections = function () {
-                scope.init();
-                directionsDisplay.setPanel(null);
-                scope.origin = '';
-                return scope.isPanelSet = false;
-            };
+      restrict: 'EA',
+      replace: true,
+      templateUrl: 'directTemplate.html',
+      link: function(scope, element) {
+        var showDirections = function(response, status) {
+          return status === google.maps.DirectionsStatus.OK 
+          ? directionsDisplay.setDirections(response) 
+          : console.warn(status);
+        };
+        directionsList = document.getElementById('directionsList');
 
-            scope.printDirections = function () {
-                return $window.print();
-            };
-        }
+        scope.getDirections = function() {
+          var request = {
+            origin: scope.origin,
+            destination: scope.endPoint,
+            travelMode: google.maps.DirectionsTravelMode.DRIVING
+          };
+          directionsService.route(request, showDirections);
+
+          directionsDisplay.setMap(scope.map);
+          directionsDisplay.setPanel(directionsList);
+          scope.isPanelSet = true;
+
+        };
+
+        scope.clearDirections = function() {
+          scope.renderMap();
+          directionsDisplay.setPanel(null);
+          scope.origin = '';
+          scope.isPanelSet = false;
+        };
+
+        scope.printDirections = function() {
+          return $window.print();
+        };
+      }
     };
     return directionsObj;
-});
+  }
+]);
